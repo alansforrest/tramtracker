@@ -1,28 +1,28 @@
 {
   "stops": [
     {
-      "gtfs_stop_id": "18187",
-      "label": "Spencer St (Stop 122) — towards Parliament",
-      "routes": [],
-      "max_rows": 4
-    },
-    {
-      "gtfs_stop_id": "18194",
-      "label": "Spencer St (Stop 122) — towards St Kilda",
-      "routes": [],
-      "max_rows": 4
-    },
-    {
       "gtfs_stop_id": "43477",
-      "label": "Collins St (Stop D14) — towards La Trobe St",
+      "label": "Collins St — toward Parliament",
       "routes": [],
-      "max_rows": 4
+      "max_rows": 2
     },
     {
       "gtfs_stop_id": "43472",
-      "label": "Collins St (Stop D14) — towards Flinders St",
+      "label": "Collins St — toward Southern Cross Station",
       "routes": [],
-      "max_rows": 4
+      "max_rows": 2
+    },
+    {
+      "gtfs_stop_id": "18187",
+      "label": "Spencer St — toward Parliament",
+      "routes": [],
+      "max_rows": 1
+    },
+    {
+      "gtfs_stop_id": "18194",
+      "label": "Spencer St — toward St Kilda",
+      "routes": [],
+      "max_rows": 1
     }
   ],
   "layout": "portraitA",

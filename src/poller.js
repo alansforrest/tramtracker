@@ -118,7 +118,7 @@ async function poll() {
   for (const stopCfg of config.stops) {
     const stopId = stopCfg.gtfs_stop_id;
     const schedule = getStopSchedule(stopId);
-    const departures = [];
+    let departures = [];
 
     for (const { trip_id, time } of schedule) {
       const info = getTripInfo(trip_id);
@@ -142,14 +142,23 @@ async function poll() {
     }
 
     // Route filter (optional per-stop)
-    let filtered = departures;
     if (stopCfg.routes?.length > 0) {
       const allowed = new Set(stopCfg.routes.map(String));
-      filtered = departures.filter((d) => allowed.has(d.route));
+      departures = departures.filter((d) => allowed.has(d.route));
     }
 
-    filtered.sort((a, b) => a.arrivalEpoch - b.arrivalEpoch);
-    newCache[stopId] = filtered.slice(0, stopCfg.max_rows ?? 8);
+    // Keep only the next departure per route, then sort by time
+    const nextPerRoute = {};
+    for (const dep of departures) {
+      if (!nextPerRoute[dep.route] || dep.arrivalEpoch < nextPerRoute[dep.route].arrivalEpoch) {
+        nextPerRoute[dep.route] = dep;
+      }
+    }
+    const filtered = Object.values(nextPerRoute)
+      .sort((a, b) => a.arrivalEpoch - b.arrivalEpoch)
+      .slice(0, stopCfg.max_rows ?? 8);
+
+    newCache[stopId] = filtered;
   }
 
   cache = newCache;
