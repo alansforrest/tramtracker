@@ -96,7 +96,7 @@ function renderMultiStop(data) {
       return dep ? depRowHtml(dep, nowSec) : emptyRowHtml();
     }).join('');
 
-    return `<div class="stop-section"><div class="stop-section-header">${label}</div>${rows}</div>`;
+    return `<div class="stop-section"><div class="stop-section-header">${label}</div><div class="dep-rows">${rows}</div></div>`;
   }).join('');
 }
 
