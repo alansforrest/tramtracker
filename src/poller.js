@@ -3,7 +3,7 @@
 const GtfsRt = require('gtfs-realtime-bindings');
 const { getTripInfo, getStopSchedule, isServiceActive } = require('./gtfs-static');
 
-const POLL_INTERVAL_MS = 30_000;
+const POLL_INTERVAL_MS = 15_000;
 const STALE_THRESHOLD_MS = 120_000;
 const MAX_LOOKAHEAD_SECS = 90 * 60;
 

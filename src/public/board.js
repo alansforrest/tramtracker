@@ -90,11 +90,9 @@ function renderMultiStop(data) {
     const deps = stopData.departures ?? [];
     const label = escHtml(stopData.stop?.label ?? stopData.stop?.name ?? id);
 
-    // Pad to maxRows with empty placeholders
-    const rows = Array.from({ length: maxRows }, (_, i) => {
-      const dep = deps[i];
-      return dep ? depRowHtml(dep, nowSec) : emptyRowHtml();
-    }).join('');
+    const rows = deps.length > 0
+      ? deps.map((dep) => depRowHtml(dep, nowSec)).join('')
+      : emptyRowHtml();
 
     return `<div class="stop-section"><div class="stop-section-header">${label}</div><div class="dep-rows">${rows}</div></div>`;
   }).join('');
