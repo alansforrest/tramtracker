@@ -1,13 +1,13 @@
 {
   "stops": [
     {
-      "gtfs_stop_id": "43477",
+      "gtfs_stop_id": "17905",
       "label": "Collins St — toward Parliament",
       "routes": [],
       "max_rows": 6
     },
     {
-      "gtfs_stop_id": "43472",
+      "gtfs_stop_id": "17906",
       "label": "Collins St — toward Southern Cross Station",
       "routes": [],
       "max_rows": 6
