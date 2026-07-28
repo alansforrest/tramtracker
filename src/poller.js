@@ -147,7 +147,7 @@ async function poll() {
       departures = departures.filter((d) => allowed.has(d.route));
     }
 
-    // Keep only the next departure per route, then sort by time
+    // Keep only the next departure per route, then sort by route number
     const nextPerRoute = {};
     for (const dep of departures) {
       if (!nextPerRoute[dep.route] || dep.arrivalEpoch < nextPerRoute[dep.route].arrivalEpoch) {
@@ -155,7 +155,7 @@ async function poll() {
       }
     }
     const filtered = Object.values(nextPerRoute)
-      .sort((a, b) => a.arrivalEpoch - b.arrivalEpoch)
+      .sort((a, b) => a.route.localeCompare(b.route, undefined, { numeric: true }))
       .slice(0, stopCfg.max_rows ?? 8);
 
     newCache[stopId] = filtered;
