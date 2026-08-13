@@ -79,14 +79,8 @@ function renderMultiStop(data) {
   if (allEmpty) { rowsEl.innerHTML = ''; noDataEl.classList.add('visible'); return; }
   noDataEl.classList.remove('visible');
 
-  // Build a stop→maxRows map from appConfig
-  const maxRowsMap = {};
-  for (const sc of (appConfig.stops ?? [])) maxRowsMap[sc.gtfs_stop_id] = sc.max_rows ?? 2;
-
   const nowSec = Date.now() / 1000;
   rowsEl.innerHTML = stops.map((stopData) => {
-    const id = stopData.stop?.id ?? '';
-    const maxRows = maxRowsMap[id] ?? 2;
     const deps = stopData.departures ?? [];
     const label = escHtml(stopData.stop?.label ?? stopData.stop?.name ?? id);
 

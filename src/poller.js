@@ -4,6 +4,7 @@ const GtfsRt = require('gtfs-realtime-bindings');
 const { getTripInfo, getStopSchedule, isServiceActive } = require('./gtfs-static');
 
 const POLL_INTERVAL_MS = 15_000;
+const FETCH_TIMEOUT_MS = 10_000;
 const STALE_THRESHOLD_MS = 120_000;
 const MAX_LOOKAHEAD_SECS = 90 * 60;
 
@@ -12,6 +13,7 @@ let lastUpdated = null;
 let stale = false;
 let lastSuccessMs = Date.now();
 let feedDiag = { entityCount: 0, rtOverridesApplied: 0 };
+let polling = false;
 
 let config = null;
 
@@ -50,125 +52,135 @@ function protoToNumber(v) {
 }
 
 async function poll() {
-  const url = process.env.GTFS_RT_URL;
-  const key = process.env.GTFS_RT_KEY;
+  if (polling) return;
+  polling = true;
 
-  if (!url || !key) {
-    console.error('[poller] GTFS_RT_URL or GTFS_RT_KEY not set — skipping poll');
-    return;
-  }
-
-  let feed;
   try {
-    const res = await fetch(url, {
-      headers: key.startsWith('eyJ')
-        ? { 'Authorization': `Bearer ${key}` }
-        : { 'KeyID': key },
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!res.ok) {
-      if (res.status === 401 || res.status === 403) {
-        console.error(`[poller] Auth error ${res.status} — check GTFS_RT_KEY`);
-      }
-      throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    const url = process.env.GTFS_RT_URL;
+    const key = process.env.GTFS_RT_KEY;
+
+    if (!url || !key) {
+      console.error('[poller] GTFS_RT_URL or GTFS_RT_KEY not set — skipping poll');
+      return;
     }
-    feed = GtfsRt.transit_realtime.FeedMessage.decode(Buffer.from(await res.arrayBuffer()));
-  } catch (err) {
-    const staleSec = Math.round((Date.now() - lastSuccessMs) / 1000);
-    stale = Date.now() - lastSuccessMs > STALE_THRESHOLD_MS;
-    console.error(`[poller] fetch/decode error (${staleSec}s since last success): ${err.message}`);
-    return;
-  }
 
-  // Build RT override map: `${tripId}:${stopId}` → absolute epoch
-  // For sparse feeds (delay only), also store delay seconds as fallback.
-  const rtMap = {};
-  for (const entity of feed.entity) {
-    const tu = entity.tripUpdate;
-    if (!tu) continue;
-    const tripId = tu.trip?.tripId;
-    if (!tripId) continue;
+    let feed;
+    try {
+      const res = await fetch(url, {
+        headers: key.startsWith('eyJ')
+          ? { 'Authorization': `Bearer ${key}` }
+          : { 'KeyID': key },
+        signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      });
+      if (!res.ok) {
+        if (res.status === 401 || res.status === 403) {
+          console.error(`[poller] Auth error ${res.status} — check GTFS_RT_KEY`);
+        }
+        throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      }
+      feed = GtfsRt.transit_realtime.FeedMessage.decode(Buffer.from(await res.arrayBuffer()));
+    } catch (err) {
+      const staleSec = Math.round((Date.now() - lastSuccessMs) / 1000);
+      stale = Date.now() - lastSuccessMs > STALE_THRESHOLD_MS;
+      console.error(`[poller] fetch/decode error (${staleSec}s since last success): ${err.message}`);
+      return;
+    }
 
-    for (const stu of tu.stopTimeUpdate ?? []) {
-      const stopId = stu.stopId;
-      if (!stopId) continue;
+    // Build RT override map: `${tripId}:${stopId}` → absolute epoch
+    // For sparse feeds (delay only), also store delay seconds as fallback.
+    const rtMap = {};
+    for (const entity of feed.entity) {
+      const tu = entity.tripUpdate;
+      if (!tu) continue;
+      const tripId = tu.trip?.tripId;
+      if (!tripId) continue;
 
-      const timeProto = stu.departure?.time ?? stu.arrival?.time;
-      if (timeProto != null) {
-        const epoch = protoToNumber(timeProto);
-        if (epoch > 1_000_000_000) { // sanity: valid Unix epoch (post-2001)
-          rtMap[`${tripId}:${stopId}`] = { epoch };
-          continue;
+      for (const stu of tu.stopTimeUpdate ?? []) {
+        const stopId = stu.stopId;
+        if (!stopId) continue;
+
+        const timeProto = stu.departure?.time ?? stu.arrival?.time;
+        if (timeProto != null) {
+          const epoch = protoToNumber(timeProto);
+          if (epoch > 1_000_000_000) { // sanity: valid Unix epoch (post-2001)
+            rtMap[`${tripId}:${stopId}`] = { epoch };
+            continue;
+          }
+        }
+        const delay = stu.departure?.delay ?? stu.arrival?.delay;
+        if (delay != null) {
+          rtMap[`${tripId}:${stopId}`] = { delay: protoToNumber(delay) };
         }
       }
-      const delay = stu.departure?.delay ?? stu.arrival?.delay;
-      if (delay != null) {
-        rtMap[`${tripId}:${stopId}`] = { delay: protoToNumber(delay) };
-      }
     }
+
+    const nowMs = Date.now();
+    const nowSec = nowMs / 1000;
+    const { dateStr, jsDay, midnightEpoch } = getMelbourneTimeInfo(nowMs);
+
+    const newCache = {};
+    let rtOverrides = 0;
+
+    for (const stopCfg of config.stops) {
+      const stopId = stopCfg.gtfs_stop_id;
+      const schedule = getStopSchedule(stopId);
+      let departures = [];
+
+      for (const { trip_id, time } of schedule) {
+        const info = getTripInfo(trip_id);
+
+        if (!isServiceActive(info.service_id, dateStr, jsDay)) continue;
+
+        // Base scheduled arrival epoch
+        let epoch = midnightEpoch + parseGtfsTime(time);
+
+        // Apply RT override if the feed has data for this trip/stop
+        const rt = rtMap[`${trip_id}:${stopId}`];
+        if (rt) {
+          if (rt.epoch)  { epoch = rt.epoch; rtOverrides++; }
+          else if (rt.delay != null) { epoch += rt.delay; rtOverrides++; }
+        }
+
+        if (epoch < nowSec - 60) continue;             // already departed
+        if (epoch > nowSec + MAX_LOOKAHEAD_SECS) continue; // too far ahead
+
+        if (!info.route_short_name) continue; // skip trips with no route number
+
+        departures.push({ route: info.route_short_name, destination: info.trip_headsign, arrivalEpoch: epoch });
+      }
+
+      // Route filter (optional per-stop)
+      if (stopCfg.routes?.length > 0) {
+        const allowed = new Set(stopCfg.routes.map(String));
+        departures = departures.filter((d) => allowed.has(d.route));
+      }
+
+      // Keep only the next departure per route, then sort by route number
+      const nextPerRoute = Object.create(null);
+      for (const dep of departures) {
+        if (!nextPerRoute[dep.route] || dep.arrivalEpoch < nextPerRoute[dep.route].arrivalEpoch) {
+          nextPerRoute[dep.route] = dep;
+        }
+      }
+      const filtered = Object.values(nextPerRoute)
+        .sort((a, b) => a.route.localeCompare(b.route, undefined, { numeric: true }))
+        .slice(0, stopCfg.max_rows ?? 8);
+
+      newCache[stopId] = filtered;
+    }
+
+    cache = newCache;
+    const now = Date.now();
+    lastUpdated = now;
+    lastSuccessMs = now;
+    stale = false;
+    feedDiag = { entityCount: feed.entity.length, rtOverridesApplied: rtOverrides };
+
+    const total = Object.values(cache).reduce((n, arr) => n + arr.length, 0);
+    console.log(`[poller] updated — ${total} departure(s) across ${config.stops.length} stop(s), ${rtOverrides} RT override(s)`);
+  } finally {
+    polling = false;
   }
-
-  const nowMs = Date.now();
-  const nowSec = nowMs / 1000;
-  const { dateStr, jsDay, midnightEpoch } = getMelbourneTimeInfo(nowMs);
-
-  const newCache = {};
-  let rtOverrides = 0;
-
-  for (const stopCfg of config.stops) {
-    const stopId = stopCfg.gtfs_stop_id;
-    const schedule = getStopSchedule(stopId);
-    let departures = [];
-
-    for (const { trip_id, time } of schedule) {
-      const info = getTripInfo(trip_id);
-
-      if (!isServiceActive(info.service_id, dateStr, jsDay)) continue;
-
-      // Base scheduled arrival epoch
-      let epoch = midnightEpoch + parseGtfsTime(time);
-
-      // Apply RT override if the feed has data for this trip/stop
-      const rt = rtMap[`${trip_id}:${stopId}`];
-      if (rt) {
-        if (rt.epoch)  { epoch = rt.epoch; rtOverrides++; }
-        else if (rt.delay != null) { epoch += rt.delay; rtOverrides++; }
-      }
-
-      if (epoch < nowSec - 60) continue;             // already departed
-      if (epoch > nowSec + MAX_LOOKAHEAD_SECS) continue; // too far ahead
-
-      departures.push({ route: info.route_short_name, destination: info.trip_headsign, arrivalEpoch: epoch });
-    }
-
-    // Route filter (optional per-stop)
-    if (stopCfg.routes?.length > 0) {
-      const allowed = new Set(stopCfg.routes.map(String));
-      departures = departures.filter((d) => allowed.has(d.route));
-    }
-
-    // Keep only the next departure per route, then sort by route number
-    const nextPerRoute = {};
-    for (const dep of departures) {
-      if (!nextPerRoute[dep.route] || dep.arrivalEpoch < nextPerRoute[dep.route].arrivalEpoch) {
-        nextPerRoute[dep.route] = dep;
-      }
-    }
-    const filtered = Object.values(nextPerRoute)
-      .sort((a, b) => a.route.localeCompare(b.route, undefined, { numeric: true }))
-      .slice(0, stopCfg.max_rows ?? 8);
-
-    newCache[stopId] = filtered;
-  }
-
-  cache = newCache;
-  lastUpdated = Date.now();
-  lastSuccessMs = Date.now();
-  stale = false;
-  feedDiag = { entityCount: feed.entity.length, rtOverridesApplied: rtOverrides };
-
-  const total = Object.values(cache).reduce((n, arr) => n + arr.length, 0);
-  console.log(`[poller] updated — ${total} departure(s) across ${config.stops.length} stop(s), ${rtOverrides} RT override(s)`);
 }
 
 function start(appConfig) {

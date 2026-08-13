@@ -16,13 +16,13 @@
       "gtfs_stop_id": "18187",
       "label": "Spencer St — toward Parliament",
       "routes": [],
-      "max_rows": 4
+      "max_rows": 2
     },
     {
       "gtfs_stop_id": "18194",
       "label": "Spencer St — toward St Kilda",
       "routes": [],
-      "max_rows": 4
+      "max_rows": 2
     }
   ],
   "layout": "portraitA",

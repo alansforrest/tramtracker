@@ -109,9 +109,8 @@
 
     /* remove right border on right-column cells */
     .stop-section:nth-child(2n) { border-right: none; }
-    /* remove bottom border on bottom-row cells */
-    .stop-section:nth-child(3),
-    .stop-section:nth-child(4) { border-bottom: none; }
+    /* remove bottom border on the last two cells (bottom grid row) */
+    .stop-section:nth-last-child(-n+2) { border-bottom: none; }
 
     .stop-section-header {
       height: var(--section-h);
@@ -141,9 +140,9 @@
 
     .dep-row {
       flex: 1;
-      min-height: 60px;
+      min-height: 48px;
       display: grid;
-      grid-template-columns: 72px 1fr auto;
+      grid-template-columns: 60px 1fr auto;
       align-items: center;
       gap: 0 16px;
       padding: 0 24px;
@@ -156,15 +155,15 @@
 
     /* Route badge */
     .badge {
-      width: 64px;
-      height: 64px;
+      width: 52px;
+      height: 52px;
       background: var(--green);
       color: #fff;
-      border-radius: 9px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 700;
       letter-spacing: -0.03em;
       flex-shrink: 0;
