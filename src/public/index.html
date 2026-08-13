@@ -16,10 +16,10 @@
       --amber:      #d97706;
       --font:       Arial, Helvetica, system-ui, sans-serif;
 
-      --w: 1024px;
-      --h: 576px;
+      --w: 576px;
+      --h: 1024px;
 
-      --header-h: 76px;
+      --header-h: 60px;
       --section-h: 36px;
       --footer-h: 30px;
     }
@@ -51,66 +51,41 @@
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 0 28px;
+      padding: 0 24px;
       border-bottom: 3px solid var(--green);
     }
 
-    #header-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
     #logo {
-      height: 36px;
+      height: 32px;
       width: auto;
+      margin-right: 12px;
       display: none;
     }
 
     #title {
-      font-size: 1.9rem;
+      font-size: 1.7rem;
       font-weight: 700;
       color: var(--fg);
       line-height: 1;
     }
 
-    #subtitle {
-      font-size: 0.9rem;
-      color: var(--muted);
-      margin-top: 4px;
-      letter-spacing: 0.02em;
-    }
-
-    #clock {
-      font-size: 2.6rem;
-      font-weight: 300;
-      color: var(--fg);
-      letter-spacing: -0.02em;
-      font-variant-numeric: tabular-nums;
-    }
-
-    /* ── 2×2 grid of stop sections ──────────────────────────── */
+    /* ── Single-column stop sections ─────────────────────────── */
     #rows {
       flex: 1;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 2fr 1fr;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
 
     .stop-section {
+      /* flex-grow set inline by JS proportional to route count */
       display: flex;
       flex-direction: column;
       min-height: 0;
-      border-right: 1px solid var(--separator);
       border-bottom: 1px solid var(--separator);
     }
 
-    /* remove right border on right-column cells */
-    .stop-section:nth-child(2n) { border-right: none; }
-    /* remove bottom border on the last two cells (bottom grid row) */
-    .stop-section:nth-last-child(-n+2) { border-bottom: none; }
+    .stop-section:last-child { border-bottom: none; }
 
     .stop-section-header {
       height: var(--section-h);
@@ -224,7 +199,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 28px;
+      padding: 0 24px;
       border-top: 1px solid var(--separator);
       font-size: 0.68rem;
       color: var(--muted);
@@ -239,14 +214,8 @@
 <body>
   <div id="board">
     <div id="header">
-      <div id="header-left">
-        <img id="logo" src="" alt="">
-        <div>
-          <div id="title">Tram Departures</div>
-          <div id="subtitle"></div>
-        </div>
-      </div>
-      <div id="clock"></div>
+      <img id="logo" src="" alt="">
+      <div id="title">Tram Departures</div>
     </div>
 
     <div id="rows"></div>

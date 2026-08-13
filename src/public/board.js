@@ -6,22 +6,13 @@ let multiStopMode = false;
 
 const MEL_TZ = 'Australia/Melbourne';
 
-// ── Clock ─────────────────────────────────────────────────────────────────────
-function updateClock() {
-  const el = document.getElementById('clock');
-  if (!el) return;
-  el.textContent = new Date().toLocaleTimeString('en-AU', {
-    timeZone: MEL_TZ, hour: '2-digit', minute: '2-digit', hour12: false,
-  });
-}
-
 // ── Boot ──────────────────────────────────────────────────────────────────────
 async function boot() {
   try {
     const res = await fetch('/api/config');
     appConfig = await res.json();
   } catch {
-    appConfig = { stops: [], layout: 'portraitA', refreshSeconds: 25, branding: {} };
+    appConfig = { stops: [], refreshSeconds: 25, branding: {} };
   }
 
   const params = new URLSearchParams(location.search);
@@ -32,17 +23,7 @@ async function boot() {
   // Branding
   const b = appConfig.branding ?? {};
   if (b.title) { document.getElementById('title').textContent = b.title; document.title = b.title; }
-  if (b.subtitle) document.getElementById('subtitle').textContent = b.subtitle;
   if (b.logo) { const l = document.getElementById('logo'); l.src = b.logo; l.style.display = 'block'; }
-
-  if (!multiStopMode) {
-    const sc = appConfig.stops.find((s) => s.gtfs_stop_id === stopId);
-    if (sc?.label) document.getElementById('subtitle').textContent = sc.label;
-  }
-
-  // Live clock
-  updateClock();
-  setInterval(updateClock, 1000);
 
   if (!multiStopMode && !stopId) { renderError('No stop configured.'); return; }
 
@@ -62,10 +43,7 @@ async function refresh() {
   } catch { return; }
 
   if (multiStopMode) renderMultiStop(data);
-  else {
-    if (data.stop?.label) document.getElementById('subtitle').textContent = data.stop.label;
-    renderDepartures(data.departures ?? [], data.stale, data.lastUpdated);
-  }
+  else renderDepartures(data.departures ?? [], data.stale, data.lastUpdated);
 }
 
 // ── Multi-stop render ─────────────────────────────────────────────────────────
@@ -84,12 +62,13 @@ function renderMultiStop(data) {
     const id = stopData.stop?.id ?? '';
     const deps = stopData.departures ?? [];
     const label = escHtml(stopData.stop?.label ?? stopData.stop?.name ?? id);
+    const flexGrow = deps.length || 1;
 
     const rows = deps.length > 0
       ? deps.map((dep) => depRowHtml(dep, nowSec)).join('')
       : emptyRowHtml();
 
-    return `<div class="stop-section"><div class="stop-section-header">${label}</div><div class="dep-rows">${rows}</div></div>`;
+    return `<div class="stop-section" style="flex:${flexGrow}"><div class="stop-section-header">${label}</div><div class="dep-rows">${rows}</div></div>`;
   }).join('');
 }
 
@@ -115,7 +94,6 @@ function depRowHtml(dep, nowSec) {
   const minsLabel = isDue ? 'Now' : minsAway === 1 ? '1 min' : `${minsAway} min`;
   const dueClass = isDue ? ' due' : '';
 
-  // Departure time in Melbourne timezone
   const depTime = new Date(dep.arrivalEpoch * 1000).toLocaleTimeString('en-AU', {
     timeZone: MEL_TZ, hour: '2-digit', minute: '2-digit', hour12: false,
   });
