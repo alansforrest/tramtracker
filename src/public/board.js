@@ -81,6 +81,7 @@ function renderMultiStop(data) {
 
   const nowSec = Date.now() / 1000;
   rowsEl.innerHTML = stops.map((stopData) => {
+    const id = stopData.stop?.id ?? '';
     const deps = stopData.departures ?? [];
     const label = escHtml(stopData.stop?.label ?? stopData.stop?.name ?? id);
 

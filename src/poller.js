@@ -137,15 +137,17 @@ async function poll() {
         // Apply RT override if the feed has data for this trip/stop
         const rt = rtMap[`${trip_id}:${stopId}`];
         if (rt) {
-          if (rt.epoch)  { epoch = rt.epoch; rtOverrides++; }
-          else if (rt.delay != null) { epoch += rt.delay; rtOverrides++; }
+          if (rt.epoch)       epoch = rt.epoch;
+          else if (rt.delay != null) epoch += rt.delay;
         }
 
         if (epoch < nowSec - 60) continue;             // already departed
         if (epoch > nowSec + MAX_LOOKAHEAD_SECS) continue; // too far ahead
 
-        if (!info.route_short_name) continue; // skip trips with no route number
+        // skip trips with no usable route number (getTripInfo returns '?' for unknown trips)
+        if (!info.route_short_name || info.route_short_name === '?') continue;
 
+        if (rt) rtOverrides++;
         departures.push({ route: info.route_short_name, destination: info.trip_headsign, arrivalEpoch: epoch });
       }
 
