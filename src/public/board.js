@@ -70,6 +70,9 @@ function renderMultiStop(data) {
 
     return `<div class="stop-section" style="flex:${flexGrow}"><div class="stop-section-header">${label}</div><div class="dep-rows">${rows}</div></div>`;
   }).join('');
+
+  // Enable scrolling text for overflowing content
+  enableScrollingText();
 }
 
 // ── Single-stop render ────────────────────────────────────────────────────────
@@ -83,6 +86,9 @@ function renderDepartures(departures, stale, lastUpdated) {
 
   const nowSec = Date.now() / 1000;
   rowsEl.innerHTML = departures.map((d) => depRowHtml(d, nowSec)).join('');
+
+  // Enable scrolling text for overflowing content
+  enableScrollingText();
 }
 
 // ── Row builders ──────────────────────────────────────────────────────────────
@@ -116,6 +122,52 @@ function emptyRowHtml() {
 </div>`;
 }
 
+// ── Scrolling text for overflow ───────────────────────────────────────────────
+function enableScrollingText() {
+  // Wait for next frame to ensure DOM is fully rendered
+  requestAnimationFrame(() => {
+    // Check stop section headers
+    document.querySelectorAll('.stop-section-header').forEach((el) => {
+      // Reset element to check if scrolling is still needed
+      if (el.classList.contains('scroll')) {
+        const span = el.querySelector('span');
+        const text = span ? span.getAttribute('data-text') || span.textContent : el.textContent;
+        el.textContent = text;
+        el.classList.remove('scroll');
+      }
+
+      // Re-check if scrolling is needed
+      if (isTextOverflowing(el)) {
+        const text = el.textContent;
+        el.innerHTML = `<span data-text="${escHtml(text)}">${escHtml(text)}</span>`;
+        el.classList.add('scroll');
+      }
+    });
+
+    // Check destination names
+    document.querySelectorAll('.dest').forEach((el) => {
+      // Reset element to check if scrolling is still needed
+      if (el.classList.contains('scroll')) {
+        const span = el.querySelector('span');
+        const text = span ? span.getAttribute('data-text') || span.textContent : el.textContent;
+        el.textContent = text;
+        el.classList.remove('scroll');
+      }
+
+      // Re-check if scrolling is needed
+      if (isTextOverflowing(el)) {
+        const text = el.textContent;
+        el.innerHTML = `<span data-text="${escHtml(text)}">${escHtml(text)}</span>`;
+        el.classList.add('scroll');
+      }
+    });
+  });
+}
+
+function isTextOverflowing(element) {
+  return element.scrollWidth > element.clientWidth;
+}
+
 // ── Footer / stale ────────────────────────────────────────────────────────────
 function updateFooter(lastUpdated, stale) {
   const el = document.getElementById('updated-at');
@@ -142,5 +194,15 @@ function renderError(msg) {
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ── Window resize handler ─────────────────────────────────────────────────────
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    // Re-evaluate scrolling text on resize
+    enableScrollingText();
+  }, 250);
+});
 
 window.addEventListener('DOMContentLoaded', boot);

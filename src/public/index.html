@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tram Departures</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,12 +17,28 @@
       --amber:      #d97706;
       --font:       Arial, Helvetica, system-ui, sans-serif;
 
-      --w: 576px;
-      --h: 1024px;
+      /* Responsive sizing - maintains 576:1024 aspect ratio (9:16) */
+      /* Board will scale to fit viewport while maintaining proportions */
+      --base-w: 576;
+      --base-h: 1024;
+      --aspect-ratio: calc(var(--base-w) / var(--base-h));
 
-      --header-h: 60px;
-      --section-h: 36px;
-      --footer-h: 30px;
+      /* Calculate dimensions based on viewport, maintaining aspect ratio */
+      --w: min(100vw, calc(100vh * var(--aspect-ratio)));
+      --h: min(100vh, calc(100vw / var(--aspect-ratio)));
+
+      /* Scale factor for proportional sizing of all elements */
+      --scale: calc(var(--w) / var(--base-w));
+
+      /* Proportional heights based on scale */
+      --header-h: calc(60px * var(--scale));
+      --section-h: calc(36px * var(--scale));
+      --footer-h: calc(30px * var(--scale));
+    }
+
+    html {
+      /* Scale base font size proportionally to board width */
+      font-size: calc(16px * var(--scale));
     }
 
     html, body {
@@ -51,14 +68,14 @@
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      padding: 0 24px;
-      border-bottom: 3px solid var(--green);
+      padding: 0 calc(24px * var(--scale));
+      border-bottom: calc(3px * var(--scale)) solid var(--green);
     }
 
     #logo {
-      height: 32px;
+      height: calc(32px * var(--scale));
       width: auto;
-      margin-right: 12px;
+      margin-right: calc(12px * var(--scale));
       display: none;
     }
 
@@ -82,7 +99,7 @@
       display: flex;
       flex-direction: column;
       min-height: 0;
-      border-bottom: 1px solid var(--separator);
+      border-bottom: calc(1px * var(--scale)) solid var(--separator);
     }
 
     .stop-section:last-child { border-bottom: none; }
@@ -92,10 +109,10 @@
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      padding: 0 24px;
+      padding: 0 calc(24px * var(--scale));
       background: var(--green-pale);
-      border-left: 4px solid var(--green);
-      border-bottom: 1px solid var(--separator);
+      border-left: calc(4px * var(--scale)) solid var(--green);
+      border-bottom: calc(1px * var(--scale)) solid var(--separator);
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -115,13 +132,13 @@
 
     .dep-row {
       flex: 1;
-      min-height: 56px;
+      min-height: calc(56px * var(--scale));
       display: grid;
-      grid-template-columns: 60px 1fr auto;
+      grid-template-columns: calc(60px * var(--scale)) 1fr auto;
       align-items: center;
-      gap: 0 16px;
-      padding: 0 24px;
-      border-bottom: 1px solid var(--separator);
+      gap: 0 calc(16px * var(--scale));
+      padding: 0 calc(24px * var(--scale));
+      border-bottom: calc(1px * var(--scale)) solid var(--separator);
     }
 
     .dep-row:last-child { border-bottom: none; }
@@ -130,11 +147,11 @@
 
     /* Route badge */
     .badge {
-      width: 52px;
-      height: 52px;
+      width: calc(52px * var(--scale));
+      height: calc(52px * var(--scale));
       background: var(--green);
       color: #fff;
-      border-radius: 8px;
+      border-radius: calc(8px * var(--scale));
       display: flex;
       align-items: center;
       justify-content: center;
@@ -161,7 +178,7 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 1px;
+      gap: calc(1px * var(--scale));
     }
 
     .mins {
@@ -199,8 +216,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
-      border-top: 1px solid var(--separator);
+      padding: 0 calc(24px * var(--scale));
+      border-top: calc(1px * var(--scale)) solid var(--separator);
       font-size: 0.68rem;
       color: var(--muted);
     }
@@ -208,6 +225,53 @@
     #updated-at.stale {
       color: var(--amber);
       font-weight: 600;
+    }
+
+    /* ── Scrolling text for overflow ─────────────────────────── */
+    @keyframes scroll-text {
+      0% {
+        transform: translateX(0%);
+      }
+      100% {
+        transform: translateX(-50%);
+      }
+    }
+
+    /* Add .scroll class to enable scrolling animation */
+    .stop-section-header.scroll,
+    .dest.scroll {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stop-section-header.scroll span,
+    .dest.scroll span {
+      display: inline-block;
+      white-space: nowrap;
+      padding-right: 3em;
+      animation: scroll-text 15s linear infinite;
+      will-change: transform;
+    }
+
+    /* Duplicate text for seamless loop using pseudo-element */
+    .stop-section-header.scroll span::after,
+    .dest.scroll span::after {
+      content: attr(data-text);
+      padding-left: 3em;
+    }
+
+    /* Pause animation on hover for readability */
+    .stop-section-header.scroll:hover span,
+    .dest.scroll:hover span {
+      animation-play-state: paused;
+    }
+
+    /* Faster scroll for smaller screens */
+    @media (max-width: 400px) {
+      .stop-section-header.scroll span,
+      .dest.scroll span {
+        animation-duration: 10s;
+      }
     }
   </style>
 </head>
