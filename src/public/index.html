@@ -105,10 +105,9 @@
       /* flex-grow set inline by JS proportional to route count */
       display: flex;
       flex-direction: column;
-      flex-shrink: 1; /* Allow sections to shrink to fit viewport */
-      min-height: 0;
+      flex-shrink: 0; /* Don't shrink sections - let container scroll */
+      min-height: fit-content; /* Size to fit content */
       border-bottom: 1px solid var(--separator);
-      overflow: hidden; /* Hide overflow rows within section */
     }
 
     .stop-section:last-child { border-bottom: none; }
@@ -134,11 +133,9 @@
 
     /* ── Departure rows ─────────────────────────────────────── */
     .dep-rows {
-      flex: 1 1 auto; /* Grow to fill space, but respect children heights */
+      flex: 0 0 auto; /* Don't grow, size to content */
       display: flex;
       flex-direction: column;
-      min-height: 0; /* Allow scrolling */
-      overflow: hidden; /* Hide rows that don't fit */
     }
 
     .dep-row {
