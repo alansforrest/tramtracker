@@ -105,9 +105,10 @@
       /* flex-grow set inline by JS proportional to route count */
       display: flex;
       flex-direction: column;
-      flex-shrink: 0; /* Prevent sections from shrinking */
+      flex-shrink: 1; /* Allow sections to shrink to fit viewport */
       min-height: 0;
       border-bottom: 1px solid var(--separator);
+      overflow: hidden; /* Hide overflow rows within section */
     }
 
     .stop-section:last-child { border-bottom: none; }
@@ -137,12 +138,13 @@
       display: flex;
       flex-direction: column;
       min-height: 0; /* Allow scrolling */
-      overflow: visible; /* Changed from hidden to allow proper sizing */
+      overflow: hidden; /* Hide rows that don't fit */
     }
 
     .dep-row {
-      flex: 0 0 auto; /* Don't grow or shrink, use natural height */
-      height: clamp(60px, 7vh, 100px); /* Fixed height that scales with viewport */
+      flex: 0 0 auto; /* Don't grow or shrink, maintain fixed height */
+      height: clamp(70px, 8vh, 110px); /* Fixed height - won't compress below 70px */
+      min-height: 70px; /* Absolute minimum height */
       display: grid;
       grid-template-columns: clamp(48px, 5.5vw, 72px) minmax(0, 1fr) minmax(clamp(80px, 8vw, 120px), auto);
       align-items: center;
