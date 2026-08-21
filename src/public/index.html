@@ -105,6 +105,7 @@
       /* flex-grow set inline by JS proportional to route count */
       display: flex;
       flex-direction: column;
+      flex-shrink: 0; /* Prevent sections from shrinking */
       min-height: 0;
       border-bottom: 1px solid var(--separator);
     }
@@ -132,14 +133,16 @@
 
     /* ── Departure rows ─────────────────────────────────────── */
     .dep-rows {
-      flex: 1;
+      flex: 1 1 auto; /* Grow to fill space, but respect children heights */
       display: flex;
       flex-direction: column;
+      min-height: 0; /* Allow scrolling */
+      overflow: visible; /* Changed from hidden to allow proper sizing */
     }
 
     .dep-row {
-      flex: 1;
-      min-height: clamp(48px, 5.5vh, 80px);
+      flex: 0 0 auto; /* Don't grow or shrink, use natural height */
+      height: clamp(60px, 7vh, 100px); /* Fixed height that scales with viewport */
       display: grid;
       grid-template-columns: clamp(48px, 5.5vw, 72px) minmax(0, 1fr) minmax(clamp(80px, 8vw, 120px), auto);
       align-items: center;
