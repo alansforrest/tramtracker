@@ -17,28 +17,19 @@
       --amber:      #d97706;
       --font:       Arial, Helvetica, system-ui, sans-serif;
 
-      /* Responsive sizing - maintains 576:1024 aspect ratio (9:16) */
-      /* Board will scale to fit viewport while maintaining proportions */
-      --base-w: 576;
-      --base-h: 1024;
-      --aspect-ratio: calc(var(--base-w) / var(--base-h));
+      /* Responsive sizing - board fills viewport */
+      --w: 100vw;
+      --h: 100vh;
 
-      /* Calculate dimensions based on viewport, maintaining aspect ratio */
-      --w: min(100vw, calc(100vh * var(--aspect-ratio)));
-      --h: min(100vh, calc(100vw / var(--aspect-ratio)));
-
-      /* Scale factor for proportional sizing of all elements */
-      --scale: calc(var(--w) / var(--base-w));
-
-      /* Proportional heights based on scale */
-      --header-h: calc(60px * var(--scale));
-      --section-h: calc(36px * var(--scale));
-      --footer-h: calc(30px * var(--scale));
+      /* Fixed heights in vh units for consistent proportions */
+      --header-h: 6vh;
+      --section-h: 3.5vh;
+      --footer-h: 3vh;
     }
 
     html {
-      /* Scale base font size proportionally to board width */
-      font-size: calc(16px * var(--scale));
+      /* Base font size - minimum 16px for readability */
+      font-size: clamp(16px, 2vw, 28px);
     }
 
     html, body {
@@ -68,14 +59,14 @@
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      padding: 0 calc(24px * var(--scale));
-      border-bottom: calc(3px * var(--scale)) solid var(--green);
+      padding: 0 clamp(16px, 2vw, 32px);
+      border-bottom: clamp(2px, 0.3vw, 4px) solid var(--green);
     }
 
     #logo {
-      height: calc(32px * var(--scale));
+      height: clamp(24px, 3vw, 48px);
       width: auto;
-      margin-right: calc(12px * var(--scale));
+      margin-right: clamp(8px, 1.2vw, 16px);
       display: none;
     }
 
@@ -92,14 +83,31 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      position: relative;
+    }
+
+    /* Auto-scroll when content overflows */
+    #rows.auto-scroll {
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+
+    #rows.auto-scroll::-webkit-scrollbar {
+      display: none; /* Hide scrollbar for cleaner look */
+    }
+
+    #rows.auto-scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
 
     .stop-section {
       /* flex-grow set inline by JS proportional to route count */
       display: flex;
       flex-direction: column;
-      min-height: 0;
-      border-bottom: calc(1px * var(--scale)) solid var(--separator);
+      flex-shrink: 0; /* Don't shrink sections - let container scroll */
+      min-height: fit-content; /* Size to fit content */
+      border-bottom: 1px solid var(--separator);
     }
 
     .stop-section:last-child { border-bottom: none; }
@@ -109,10 +117,10 @@
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      padding: 0 calc(24px * var(--scale));
+      padding: 0 clamp(16px, 2vw, 32px);
       background: var(--green-pale);
-      border-left: calc(4px * var(--scale)) solid var(--green);
-      border-bottom: calc(1px * var(--scale)) solid var(--separator);
+      border-left: clamp(3px, 0.4vw, 6px) solid var(--green);
+      border-bottom: 1px solid var(--separator);
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.08em;
@@ -125,20 +133,21 @@
 
     /* ── Departure rows ─────────────────────────────────────── */
     .dep-rows {
-      flex: 1;
+      flex: 0 0 auto; /* Don't grow, size to content */
       display: flex;
       flex-direction: column;
     }
 
     .dep-row {
-      flex: 1;
-      min-height: calc(56px * var(--scale));
+      flex: 0 0 auto; /* Don't grow or shrink, maintain fixed height */
+      height: clamp(70px, 8vh, 110px); /* Fixed height - won't compress below 70px */
+      min-height: 70px; /* Absolute minimum height */
       display: grid;
-      grid-template-columns: calc(60px * var(--scale)) 1fr auto;
+      grid-template-columns: clamp(48px, 5.5vw, 72px) minmax(0, 1fr) minmax(clamp(80px, 8vw, 120px), auto);
       align-items: center;
-      gap: 0 calc(16px * var(--scale));
-      padding: 0 calc(24px * var(--scale));
-      border-bottom: calc(1px * var(--scale)) solid var(--separator);
+      gap: 0 clamp(12px, 1.5vw, 24px);
+      padding: 0 clamp(16px, 2vw, 32px);
+      border-bottom: 1px solid var(--separator);
     }
 
     .dep-row:last-child { border-bottom: none; }
@@ -147,11 +156,11 @@
 
     /* Route badge */
     .badge {
-      width: calc(52px * var(--scale));
-      height: calc(52px * var(--scale));
+      width: clamp(48px, 5.5vw, 72px);
+      height: clamp(48px, 5.5vw, 72px);
       background: var(--green);
       color: #fff;
-      border-radius: calc(8px * var(--scale));
+      border-radius: clamp(6px, 0.8vw, 12px);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -171,6 +180,9 @@
       overflow: hidden;
       text-overflow: ellipsis;
       color: var(--fg);
+      min-width: 0; /* Allows grid item to shrink below content size */
+      max-width: 100%; /* Never exceed grid column width */
+      padding-right: clamp(8px, 1vw, 16px); /* Safety gap before time column */
     }
 
     /* Time + minutes group */
@@ -178,7 +190,9 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: calc(1px * var(--scale));
+      gap: 2px;
+      min-width: clamp(80px, 8vw, 120px); /* Reserve space for time */
+      flex-shrink: 0; /* Never shrink the time column */
     }
 
     .mins {
@@ -216,8 +230,8 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 calc(24px * var(--scale));
-      border-top: calc(1px * var(--scale)) solid var(--separator);
+      padding: 0 clamp(16px, 2vw, 32px);
+      border-top: 1px solid var(--separator);
       font-size: 0.68rem;
       color: var(--muted);
     }
