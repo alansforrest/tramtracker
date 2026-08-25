@@ -1,35 +1,35 @@
 {
   "stops": [
     {
-      "gtfs_stop_id": "17905",
+      "gtfs_stop_id": "17906",
       "label": "Collins St — toward Parliament",
       "routes": [],
       "max_rows": 6
     },
     {
-      "gtfs_stop_id": "17906",
+      "gtfs_stop_id": "17905",
       "label": "Collins St — toward Southern Cross Station",
       "routes": [],
       "max_rows": 6
     },
     {
       "gtfs_stop_id": "18187",
-      "label": "Spencer St — toward Parliament",
+      "label": "Spencer St — toward La Trobe St",
       "routes": [],
-      "max_rows": 2
+      "max_rows": 4
     },
     {
       "gtfs_stop_id": "18194",
-      "label": "Spencer St — toward St Kilda",
+      "label": "Spencer St — toward Flinders St",
       "routes": [],
-      "max_rows": 2
+      "max_rows": 4
     }
   ],
   "layout": "portraitA",
   "refreshSeconds": 15,
   "branding": {
     "title": "Tram Departures",
-    "subtitle": "Southern Cross Station",
+    "subtitle": "",
     "logo": null
   }
 }
