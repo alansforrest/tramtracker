@@ -68,7 +68,7 @@ function renderMultiStop(data) {
       ? deps.map((dep) => depRowHtml(dep, nowSec)).join('')
       : emptyRowHtml();
 
-    return `<div class="stop-section" style="flex:${flexGrow}"><div class="stop-section-header">${label}</div><div class="dep-rows">${rows}</div></div>`;
+    return `<div class="stop-section" style="flex:${flexGrow} 1 0"><div class="stop-section-header">${label}</div><div class="dep-rows">${rows}</div></div>`;
   }).join('');
 
   // Enable auto-scroll for overflow content
