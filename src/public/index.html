@@ -15,14 +15,14 @@
       --green-pale: #f4faea;
       --separator:  #e4e4e4;
       --amber:      #d97706;
-      --font:       Arial, Helvetica, system-ui, sans-serif;
+      --font:       Helvetica, system-ui, Arial, sans-serif;
 
       /* Responsive sizing - board fills viewport */
       --w: 100vw;
       --h: 100vh;
 
       /* Fixed heights in vh units for consistent proportions */
-      --header-h: 6vh;
+      --header-h: 50px;
       --section-h: 3.5vh;
       --footer-h: 3vh;
     }
@@ -60,7 +60,7 @@
       display: flex;
       align-items: center;
       padding: 0 clamp(16px, 2vw, 32px);
-      border-bottom: clamp(2px, 0.3vw, 4px) solid var(--green);
+      border-bottom: 1px solid var(--separator);;
     }
 
     #logo {
@@ -102,15 +102,14 @@
     }
 
     .stop-section {
-      /* flex-grow set inline by JS proportional to route count */
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0; /* Don't shrink sections - let container scroll */
-      min-height: fit-content; /* Size to fit content */
-      border-bottom: 1px solid var(--separator);
-    }
+	  display: flex;
+	  flex-direction: column;
+	  flex: 1 1 0;
+	  min-height: 0;
+	  border-bottom: 1px solid var(--separator);
+	}
 
-    .stop-section:last-child { border-bottom: none; }
+    .stop-section:last-child { border-bottom: 1px solid var(--separator); }
 
     .stop-section-header {
       height: var(--section-h);
@@ -124,7 +123,6 @@
       font-size: 0.72rem;
       font-weight: 700;
       letter-spacing: 0.08em;
-      text-transform: uppercase;
       color: #4a6e10;
       white-space: nowrap;
       overflow: hidden;
@@ -133,15 +131,16 @@
 
     /* ── Departure rows ─────────────────────────────────────── */
     .dep-rows {
-      flex: 0 0 auto; /* Don't grow, size to content */
-      display: flex;
-      flex-direction: column;
-    }
+	  flex: 1 1 auto;
+	  min-height: 0;
+	  display: flex;
+	  flex-direction: column;
+	}
 
     .dep-row {
-      flex: 0 0 auto; /* Don't grow or shrink, maintain fixed height */
-      height: clamp(70px, 8vh, 110px); /* Fixed height - won't compress below 70px */
+      flex: 1 1 0;
       min-height: 70px; /* Absolute minimum height */
+	  max-height: 110px;
       display: grid;
       grid-template-columns: clamp(48px, 5.5vw, 72px) minmax(0, 1fr) minmax(clamp(80px, 8vw, 120px), auto);
       align-items: center;
@@ -156,8 +155,8 @@
 
     /* Route badge */
     .badge {
-      width: clamp(48px, 5.5vw, 72px);
-      height: clamp(48px, 5.5vw, 72px);
+      width: clamp(48px, 5.5vw, 64px);
+      height: clamp(48px, 5.5vw, 64px);
       background: var(--green);
       color: #fff;
       border-radius: clamp(6px, 0.8vw, 12px);
