@@ -127,7 +127,7 @@
 	  background: var(--green-pale);
 	  border-left: clamp(3px, 0.4vh, 6px) solid var(--green);
 	  border-bottom: 1px solid var(--separator);
-	  font-size: 0.72rem;
+	  font-size: 0.9rem;
 	  font-weight: 700;
 	  letter-spacing: 0.08em;
 	  color: #4a6e10;
@@ -153,9 +153,9 @@
 	  max-height: var(--row-max);
 	  display: grid;
 	  grid-template-columns:
-		clamp(48px, 5.5vh, 72px)
+		auto
 		minmax(0, 1fr)
-		minmax(clamp(80px, 8vh, 120px), auto);
+		100px;
 	  align-items: center;
 	  gap: 0 clamp(12px, 1.5vh, 24px);
 	  padding: 0 clamp(16px, 2vh, 32px);
