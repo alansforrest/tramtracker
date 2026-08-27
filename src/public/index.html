@@ -67,14 +67,14 @@
 	  flex: 0 0 var(--header-h);
 	  display: flex;
 	  align-items: center;
-	  padding: 0 clamp(16px, 2vh, 32px);
+	  padding: 0 clamp(16px, 2vw, 32px);
 	  border-bottom: 1px solid var(--separator);
 	}
 
 	#logo {
-	  height: clamp(24px, 3vh, 48px);
+	  height: clamp(24px, 3vw, 48px);
 	  width: auto;
-	  margin-right: clamp(8px, 1.2vh, 16px);
+	  margin-right: clamp(8px, 1.2vw, 16px);
 	  display: none;
 	}
 
@@ -107,7 +107,7 @@
 	.stop-section {
 	  display: flex;
 	  flex-direction: column;
-	  flex: 1 0 auto;
+	  flex: 0 0 auto;
 	  min-height: max-content;
 	  border-bottom: 1px solid var(--separator);
 	}
@@ -123,9 +123,9 @@
 	  flex: 0 0 var(--section-h);
 	  display: flex;
 	  align-items: center;
-	  padding: 0 clamp(16px, 2vh, 32px);
+	  padding: 0 clamp(16px, 2vw, 32px);
 	  background: var(--green-pale);
-	  border-left: clamp(3px, 0.4vh, 6px) solid var(--green);
+	  border-left: 3px solid var(--green);
 	  border-bottom: 1px solid var(--separator);
 	  font-size: 0.9rem;
 	  font-weight: 700;
@@ -157,8 +157,8 @@
 		minmax(0, 1fr)
 		100px;
 	  align-items: center;
-	  gap: 0 clamp(12px, 1.5vh, 24px);
-	  padding: 0 clamp(16px, 2vh, 32px);
+	  gap: 0 clamp(12px, 1vw, 24px);
+	  padding: 0 clamp(2px, 2vw, 32px);
 	  border-bottom: 1px solid var(--separator);
 	}
 
@@ -173,11 +173,12 @@
 	/* ── Route badge ────────────────────────────────────────── */
 
 	.badge {
-	  width: clamp(48px, 5.5vh, 64px);
-	  height: clamp(48px, 5.5vh, 64px);
+	  width: clamp(48px, 5.5vw, 64px);
+	  aspect-ratio: 1;
+	  max-height: calc(100% - 4px);
 	  background: var(--green);
 	  color: #fff;
-	  border-radius: clamp(6px, 0.8vh, 12px);
+	  border-radius: clamp(6px, 0.8vw, 12px);
 	  display: flex;
 	  align-items: center;
 	  justify-content: center;
@@ -202,7 +203,7 @@
 	  color: var(--fg);
 	  min-width: 0;
 	  max-width: 100%;
-	  padding-right: clamp(8px, 1vh, 16px);
+	  padding-right: clamp(8px, 1vw, 16px);
 	}
 
 	/* ── Time + minutes group ──────────────────────────────── */
@@ -212,7 +213,7 @@
 	  flex-direction: column;
 	  align-items: flex-end;
 	  gap: 2px;
-	  min-width: clamp(80px, 8vh, 120px);
+	  min-width: clamp(80px, 8vw, 120px);
 	  flex-shrink: 0;
 	}
 
@@ -258,7 +259,7 @@
 	  display: flex;
 	  align-items: center;
 	  justify-content: space-between;
-	  padding: 0 clamp(16px, 2vh, 32px);
+	  padding: 0 clamp(16px, 2vw, 32px);
 	  border-top: 1px solid var(--separator);
 	  font-size: 0.68rem;
 	  color: var(--muted);
