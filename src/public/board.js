@@ -131,10 +131,14 @@ function setEqualRowHeight() {
     return total + section.querySelector('.stop-section-header').offsetHeight;
   }, 0);
 
+  const styles = getComputedStyle(document.documentElement);
+  const rowMin = parseFloat(styles.getPropertyValue('--row-min'));
+  const rowMax = parseFloat(styles.getPropertyValue('--row-max'));
+
   const rowHeight = Math.max(
-    70,
+    rowMin,
     Math.min(
-      150,
+      rowMax,
       (rowsEl.clientHeight - headerHeight - 4) / allRows.length
     )
   );
