@@ -135,7 +135,7 @@ function setEqualRowHeight() {
     70,
     Math.min(
       150,
-      (rowsEl.clientHeight - headerHeight) / allRows.length
+      (rowsEl.clientHeight - headerHeight - 4) / allRows.length
     )
   );
 
