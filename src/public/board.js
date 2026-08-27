@@ -20,7 +20,6 @@ async function boot() {
   multiStopMode = !stopParam || stopParam === 'all';
   stopId = multiStopMode ? null : stopParam;
 
-  // Branding
   const b = appConfig.branding ?? {};
   if (b.title) { document.getElementById('title').textContent = b.title; document.title = b.title; }
   if (b.logo) { const l = document.getElementById('logo'); l.src = b.logo; l.style.display = 'block'; }
@@ -70,11 +69,8 @@ function renderMultiStop(data) {
     return `<div class="stop-section"><div class="stop-section-header">${label}</div><div class="dep-rows">${rows}</div></div>`;
   }).join('');
 
-  // Enable auto-scroll for overflow content
+  setEqualRowHeight();
   enableAutoScroll();
-
-  // Scrolling text disabled by default - using ellipsis truncation
-  // Uncomment to enable scrolling: enableScrollingText();
 }
 
 // ── Single-stop render ────────────────────────────────────────────────────────
@@ -89,11 +85,8 @@ function renderDepartures(departures, stale, lastUpdated) {
   const nowSec = Date.now() / 1000;
   rowsEl.innerHTML = departures.map((d) => depRowHtml(d, nowSec)).join('');
 
-  // Enable auto-scroll for overflow content
+  setEqualRowHeight();
   enableAutoScroll();
-
-  // Scrolling text disabled by default - using ellipsis truncation
-  // Uncomment to enable scrolling: enableScrollingText();
 }
 
 // ── Row builders ──────────────────────────────────────────────────────────────
@@ -127,34 +120,55 @@ function emptyRowHtml() {
 </div>`;
 }
 
+function setEqualRowHeight() {
+  const rowsEl = document.getElementById('rows');
+  const sections = [...rowsEl.querySelectorAll('.stop-section')];
+  const allRows = [...rowsEl.querySelectorAll('.dep-row')];
+
+  if (!sections.length || !allRows.length) return;
+
+  const headerHeight = sections.reduce((total, section) => {
+    return total + section.querySelector('.stop-section-header').offsetHeight;
+  }, 0);
+
+  const rowHeight = Math.max(
+    70,
+    Math.min(
+      150,
+      (rowsEl.clientHeight - headerHeight) / allRows.length
+    )
+  );
+
+  allRows.forEach((row) => {
+    row.style.flex = `0 0 ${rowHeight}px`;
+    row.style.height = `${rowHeight}px`;
+  });
+}
+
 // ── Auto-scroll departures list ───────────────────────────────────────────────
 let scrollInterval = null;
 
 function enableAutoScroll() {
   const rowsEl = document.getElementById('rows');
 
-  // Clear any existing scroll interval
   if (scrollInterval) {
     clearInterval(scrollInterval);
     scrollInterval = null;
   }
 
-  // Check if content overflows
   requestAnimationFrame(() => {
     const isOverflowing = rowsEl.scrollHeight > rowsEl.clientHeight;
 
     if (isOverflowing) {
       rowsEl.classList.add('auto-scroll');
 
-      // Auto-scroll configuration
-      const scrollSpeed = 50; // pixels per second
-      const pauseAtTop = 3000; // ms to pause at top
-      const pauseAtBottom = 2000; // ms to pause at bottom
+      const scrollSpeed = 50;
+      const pauseAtTop = 3000;
+      const pauseAtBottom = 2000;
 
       let isAtTop = true;
       let isPaused = true;
 
-      // Start with a pause at the top
       setTimeout(() => {
         isPaused = false;
         startScrolling();
@@ -167,24 +181,24 @@ function enableAutoScroll() {
           const maxScroll = rowsEl.scrollHeight - rowsEl.clientHeight;
 
           if (isAtTop) {
-            // Scroll down
             rowsEl.scrollTop += 1;
 
             if (rowsEl.scrollTop >= maxScroll) {
-              // Reached bottom
+              rowsEl.scrollTop = maxScroll;
               isPaused = true;
+
               setTimeout(() => {
                 isAtTop = false;
                 isPaused = false;
               }, pauseAtBottom);
             }
           } else {
-            // Scroll up
             rowsEl.scrollTop -= 1;
 
             if (rowsEl.scrollTop <= 0) {
-              // Reached top
+              rowsEl.scrollTop = 0;
               isPaused = true;
+
               setTimeout(() => {
                 isAtTop = true;
                 isPaused = false;
@@ -202,11 +216,8 @@ function enableAutoScroll() {
 
 // ── Scrolling text for overflow ───────────────────────────────────────────────
 function enableScrollingText() {
-  // Wait for next frame to ensure DOM is fully rendered
   requestAnimationFrame(() => {
-    // Check stop section headers
     document.querySelectorAll('.stop-section-header').forEach((el) => {
-      // Reset element to check if scrolling is still needed
       if (el.classList.contains('scroll')) {
         const span = el.querySelector('span');
         const text = span ? span.getAttribute('data-text') || span.textContent : el.textContent;
@@ -214,7 +225,6 @@ function enableScrollingText() {
         el.classList.remove('scroll');
       }
 
-      // Re-check if scrolling is needed
       if (isTextOverflowing(el)) {
         const text = el.textContent;
         el.innerHTML = `<span data-text="${escHtml(text)}">${escHtml(text)}</span>`;
@@ -222,9 +232,7 @@ function enableScrollingText() {
       }
     });
 
-    // Check destination names
     document.querySelectorAll('.dest').forEach((el) => {
-      // Reset element to check if scrolling is still needed
       if (el.classList.contains('scroll')) {
         const span = el.querySelector('span');
         const text = span ? span.getAttribute('data-text') || span.textContent : el.textContent;
@@ -232,7 +240,6 @@ function enableScrollingText() {
         el.classList.remove('scroll');
       }
 
-      // Re-check if scrolling is needed
       if (isTextOverflowing(el)) {
         const text = el.textContent;
         el.innerHTML = `<span data-text="${escHtml(text)}">${escHtml(text)}</span>`;
@@ -273,15 +280,14 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ── Window resize handler (for scrolling text feature) ────────────────────────
-// Disabled by default since scrolling is not enabled
-// Uncomment if you enable scrolling text:
-// let resizeTimeout;
-// window.addEventListener('resize', () => {
-//   clearTimeout(resizeTimeout);
-//   resizeTimeout = setTimeout(() => {
-//     enableScrollingText();
-//   }, 250);
-// });
+// ── Window resize handler ─────────────────────────────────────────────────────
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    setEqualRowHeight();
+    enableAutoScroll();
+  }, 250);
+});
 
 window.addEventListener('DOMContentLoaded', boot);
