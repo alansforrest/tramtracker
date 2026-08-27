@@ -62,13 +62,12 @@ function renderMultiStop(data) {
     const id = stopData.stop?.id ?? '';
     const deps = stopData.departures ?? [];
     const label = escHtml(stopData.stop?.label ?? stopData.stop?.name ?? id);
-    const flexGrow = deps.length || 1;
 
     const rows = deps.length > 0
       ? deps.map((dep) => depRowHtml(dep, nowSec)).join('')
       : emptyRowHtml();
 
-    return `<div class="stop-section" style="flex:${flexGrow} 1 0"><div class="stop-section-header">${label}</div><div class="dep-rows">${rows}</div></div>`;
+    return `<div class="stop-section"><div class="stop-section-header">${label}</div><div class="dep-rows">${rows}</div></div>`;
   }).join('');
 
   // Enable auto-scroll for overflow content
